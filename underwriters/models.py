@@ -8,6 +8,7 @@ class UnderWriter(models.Model):
     name = models.CharField(max_length=100, null=False, blank=False)
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     mobile = models.IntegerField()
+    code = models.CharField(max_length=5, unique=True, null=True, blank=True)
     isActive = models.BooleanField(default=True)
     isDeleted = models.BooleanField(default=False)
     createdDate = models.DateTimeField(auto_now_add=True)

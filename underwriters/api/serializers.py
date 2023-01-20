@@ -22,16 +22,16 @@ class UnderwriterSerializerGET(serializers.ModelSerializer):
 
 
 
-class UnderwriterSerializerPOST(serializers.Serializer):
-    
+class UnderwriterSerializerPOST(serializers.ModelSerializer):
+    member = MemberSerializer(many=False, read_only=True)
     username = serializers.CharField(max_length=150, required=False)
     email = serializers.EmailField(max_length=150, required=False)
-    name = serializers.CharField(max_length=150)
-    surname = serializers.CharField(max_length=150, required=False)
+    lastName = serializers.CharField(max_length=150, required=False)
     password = serializers.CharField(max_length=150, required=False)   
-    mobile = serializers.IntegerField()
-    isActive= serializers.BooleanField(required=False) 
-    isDeleted = serializers.BooleanField(required=False)
+    
+    class Meta:
+        model = UnderWriter
+        fields = ['id','name', 'member','code', 'username','email','lastName','password', 'mobile', 'isActive', 'isDeleted']
     
     
     
@@ -58,8 +58,9 @@ class UnderwriterSerializerPOST(serializers.Serializer):
                 email = validatedData['email']
                 password = validatedData['password']
                 firstName = validatedData['name']
-                lastName = validatedData['surname']
+                lastName = validatedData['lastName']
                 mobile = validatedData['mobile']
+                code = validatedData['code']
                 
                 user = User.objects.create(
                     username=username,
@@ -76,17 +77,18 @@ class UnderwriterSerializerPOST(serializers.Serializer):
                     tmpPass=generate_random_password(8),
                 )
                 member.save()
-                amCreated = UnderWriter.objects.create(
+                uwCreated = UnderWriter.objects.create(
                     member=member,
                     mobile=mobile,
-                    name=firstName
+                    name=firstName,
+                    code=code
                 )
-                amCreated.save()
+                uwCreated.save()
         
         except IntegrityError as err:
             return Response({'Something went wrong!!!'})
         print('created!!!')    
-        return validatedData
+        return uwCreated
     
     
     

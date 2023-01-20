@@ -18,22 +18,22 @@ class AccountManagerSerializerGET(serializers.ModelSerializer):
     
     class Meta:
         model=AccountManager
-        fields = ['id', 'name', 'member', 'mobile', 'isActive', 'createdDate', 'updatedDate', 'isDeleted']
+        fields = ['id', 'name', 'member', 'code', 'mobile', 'isActive', 'createdDate', 'updatedDate', 'isDeleted']
 
 
 
 
-class AccountManagerSerializerPOST(serializers.Serializer):
-    
+class AccountManagerSerializerPOST(serializers.ModelSerializer):
+    member = MemberSerializer(many=False, read_only=True)
     username = serializers.CharField(max_length=150, required=False)
     email = serializers.EmailField(max_length=150, required=False)
-    name = serializers.CharField(max_length=150)
-    surname = serializers.CharField(max_length=150, required=False)
+    lastName = serializers.CharField(max_length=150, required=False)
     password = serializers.CharField(max_length=150, required=False)   
-    mobile = serializers.IntegerField()
-    isActive= serializers.BooleanField(required=False) 
-    isDeleted = serializers.BooleanField(required=False)
     
+    class Meta:
+        model = AccountManager
+        fields = ['id','name', 'member','code', 'username','email','lastName','password', 'mobile', 'isActive', 'isDeleted']
+        
     
     
     def validate(self, data):
@@ -59,8 +59,9 @@ class AccountManagerSerializerPOST(serializers.Serializer):
                 email = validatedData['email']
                 password = validatedData['password']
                 firstName = validatedData['name']
-                lastName = validatedData['surname']
+                lastName = validatedData['lastName']
                 mobile = validatedData['mobile']
+                code = validatedData['code']
                 
                 user = User.objects.create(
                     username=username,
@@ -80,14 +81,15 @@ class AccountManagerSerializerPOST(serializers.Serializer):
                 amCreated = AccountManager.objects.create(
                     member=member,
                     mobile=mobile,
-                    name=firstName
+                    name=firstName,
+                    code=code
                 )
                 amCreated.save()
         
         except IntegrityError as err:
             return Response({'Something went wrong!!!'})
         print('created!!!')    
-        return validatedData
+        return amCreated
     
     
     

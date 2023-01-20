@@ -8,6 +8,7 @@ from django.db import transaction, IntegrityError
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 from core.helpers.views_helpers.validate_datas import ValidateUserDatas, generate_random_password
+import json
 from rest_framework.decorators import action
 
 RATING = (('A', 'A'), 
@@ -29,26 +30,21 @@ class PartnerSerializerGET(serializers.ModelSerializer):
 
 
 
-class PartnerSerializerPOST(serializers.Serializer):
-    bank = serializers.PrimaryKeyRelatedField(queryset=Bank.objects.all())
-    city = serializers.PrimaryKeyRelatedField(queryset=City.objects.all())
-    superPartner = serializers.PrimaryKeyRelatedField(queryset=SuperPartner.objects.all(),required=False)
-    isReferral = serializers.BooleanField()
-    rating = serializers.ChoiceField(choices=RATING, required=False)
+class PartnerSerializerPOST(serializers.ModelSerializer):
+    bank = serializers.PrimaryKeyRelatedField(queryset=Bank.objects.filter(isActive=True))
+    city = serializers.PrimaryKeyRelatedField(queryset=City.objects.filter(isActive=True))
+    superPartner = serializers.PrimaryKeyRelatedField(queryset=SuperPartner.objects.filter(isActive=True,isConfirmed=True), required=False)
     username = serializers.CharField(max_length=150,required=False)
     email = serializers.EmailField(max_length=150, required=False)
-    name = serializers.CharField(max_length=150)
     lastName = serializers.CharField(max_length=150, required=False)
-    password = serializers.CharField(max_length=150., required=False)   
-    mobile = serializers.IntegerField()
-    personalId = serializers.CharField(max_length=10)
-    nipt = serializers.CharField(max_length=10)
-    accountNumber = serializers.CharField(max_length=30)
-    activity = serializers.CharField(max_length=150)
+    password = serializers.CharField(max_length=150., required=False)
+    member = MemberSerializer(many=False, read_only=True)   
     
-    isActive= serializers.BooleanField(required=False) 
-    isDeleted = serializers.BooleanField(required=False)
-    isConfirmed = serializers.BooleanField(required=False)
+    
+    class Meta:
+        model = Partner
+        fields = ['id', 'createdDate', 'name', 'member','lastName', 'username', 'email', 'password', 'nipt', 'personalId', 'city', 'bank', 'mobile', 
+                  'accountNumber', 'activity', 'isReferral', 'rating', 'superPartner', 'isActive', 'isConfirmed','isDeleted']
     
     
     def validate(self, data):
@@ -111,13 +107,14 @@ class PartnerSerializerPOST(serializers.Serializer):
     
     def update(self, instance, validatedData):
         print('updating')
-        datas = {'isActive' : validatedData.get('isActive', instance.isActive),
-                 'personalId': validatedData.get('personalId', instance.personalId),
-                 'nipt' : validatedData.get('nipt', instance.nipt),
-                 'isReferral': validatedData.get('isReferral', instance.isReferral),
-                 'rating': validatedData.get('rating', instance.rating),
-                 'bank': validatedData.get('bank', instance.bank),
-                 'accountNumber': validatedData.get('accountNumber'),
+        datas ={
+                'isActive' : validatedData.get('isActive', instance.isActive),
+                'personalId': validatedData.get('personalId', instance.personalId),
+                'nipt' : validatedData.get('nipt', instance.nipt),
+                'isReferral': validatedData.get('isReferral', instance.isReferral),
+                'rating': validatedData.get('rating', instance.rating),
+                'bank': str(validatedData.get('bank', instance.bank).id),
+                'accountNumber': validatedData.get('accountNumber',instance.accountNumber),
                  
                  }
         instance.jsonDatas = datas
@@ -127,7 +124,7 @@ class PartnerSerializerPOST(serializers.Serializer):
         
         return instance
 
-    
+   
     
 
 

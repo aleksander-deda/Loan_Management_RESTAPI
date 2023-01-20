@@ -11,12 +11,13 @@ from rest_framework.response import Response
 from rest_framework import serializers, viewsets
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
+from rest_framework.permissions import IsAuthenticated
 
 
 
 
 class AccountManagerViewSet(viewsets.ViewSet):
-    
+    permission_classes = [IsAuthenticated]
     def queryset():
         queryset = AccountManager.objects.all()
         return queryset
@@ -40,6 +41,9 @@ class AccountManagerViewSet(viewsets.ViewSet):
         
         if User.objects.filter(username=request.data["username"]).exists():
             return Response({'Info': f'Perdoruesi me username {request.data["username"]} ekziston tashme!'})
+        
+        if AccountManager.objects.filter(code=request.data["code"]).exists():
+            return Response({'Info': f'AM me kodin {request.data["code"]} ekziston tashme!'})
         
         if serializer.is_valid():
             serializer.save()
@@ -67,6 +71,7 @@ class AccountManagerViewSet(viewsets.ViewSet):
     
     
 class UnderwriterViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
     
     def queryset():
         queryset = UnderWriter.objects.all()
@@ -93,11 +98,14 @@ class UnderwriterViewSet(viewsets.ViewSet):
         if User.objects.filter(username=request.data["username"]).exists():
             return Response({'Info': f'Perdoruesi me username {request.data["username"]} ekziston tashme!'})
         
+        if UnderWriter.objects.filter(code=request.data["code"]).exists():
+            return Response({'Info': f'UW me kodin {request.data["code"]} ekziston tashme!'})
+        
         if serializer.is_valid():
             serializer.save()
         
         else:
-            return Response({'Error': 'Nuk keni plotesuar sakte formen per AM!!'})
+            return Response({'Error': 'Nuk keni plotesuar sakte formen per UW!!'})
         
         return Response(serializer.data)
         
